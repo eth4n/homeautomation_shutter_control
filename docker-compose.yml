@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  app:
+    container_name: shutter-control
+    image: shutter-control
+    network_mode: host
+    build:
+      context: .
+    volumes:
+      - ./config:/app/config

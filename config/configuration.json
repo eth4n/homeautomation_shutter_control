@@ -1,0 +1,21 @@
+{
+  "id": "dev",
+  "mqtt": "tcp://localhost:1883",
+  "channel": "shutter_control",
+  "homeassistant_discover": "homeassistant",
+  "windows": [
+    {
+      "id": "w01",
+      "window_tilted_sensor": "",
+      "window_open_sensor": "zigbee2mqtt/door_sensor01",
+      "cover_output": "zigbee2mqtt/moes_curtain_001",
+      "cover_output_calibration_time_up": 25,
+      "cover_output_calibration_time_down": 23,
+      "open_drizzle" : 15,
+      "open_storm" : 0,
+      "tilted_drizzle" : 60,
+      "tilted_storm" : 15,
+      "tilted_closed": 75
+    }
+  ]
+}
