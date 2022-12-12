@@ -178,7 +178,9 @@ func updateCover(window *domain.StateWindow, value int) {
 		j, _ := json.Marshal(s)
 		newStateString = string(j)
 	} else if value == 100 {
-		// Only to to reset CalibrationTime and thus setting the position to 0
+		common.LogDebug(fmt.Sprintf("Fixing calibration time to set value to 100 for window %s/%s (output cover: %s)", window.Id, window.Config.Id, window.Config.OutputCoverStateTopic))
+
+		// Only to reset CalibrationTime and thus setting the position to 0
 		token := (*window.OutputCover.AppState.Mqtt).Publish(window.Config.OutputCoverStateTopic+"/set/calibration_time", 0, false, strconv.Itoa(window.Config.OutputCoverTimeUp+10))
 		token.Wait()
 

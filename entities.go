@@ -37,7 +37,7 @@ func initEntities() {
 
 func initWindows() {
 	state.Windows = make([]domain.StateWindow, 0)
-	for _, w := range state.Configuration.Windows {
+	for i, w := range state.Configuration.Windows {
 		window := domain.Device{
 			Identifiers:  state.Configuration.NodeId + "_" + w.Id,
 			Manufacturer: domain.Manufacturer,
@@ -129,7 +129,7 @@ func initWindows() {
 
 		sw := domain.StateWindow{
 			Id:                      w.Id,
-			Config:                  &w,
+			Config:                  &state.Configuration.Windows[i],
 			Automation:              &automation,
 			ScheduledInputCover:     &scheduledCover,
 			ScheduledValue:          &scheduledValue,
