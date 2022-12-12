@@ -170,6 +170,7 @@ func updateCover(window *domain.StateWindow, value int) {
 	currentPosition := getCoverPosition(window.OutputCover)
 	var newState CoverStatePosition
 	var newStateString string
+	var valueToGo = value
 
 	if value == -2 {
 		s := CoverStateOnly{
@@ -177,7 +178,7 @@ func updateCover(window *domain.StateWindow, value int) {
 		}
 		j, _ := json.Marshal(s)
 		newStateString = string(j)
-	} else if value == 100 {
+	} else if value == 100 && currentPosition != 100 {
 		common.LogDebug(fmt.Sprintf("Fixing calibration time to set value to 100 for window %s/%s (output cover: %s)", window.Id, window.Config.Id, window.Config.OutputCoverStateTopic))
 
 		// Only to reset CalibrationTime and thus setting the position to 0
@@ -200,8 +201,10 @@ func updateCover(window *domain.StateWindow, value int) {
 		a := float64(wayToGo) * factor
 		b := a - float64(wayToGo)
 
+		valueToGo = int(math.Round(float64(value) + b))
+
 		newState = CoverStatePosition{
-			Position: Int(int(math.Round(float64(value) + b))),
+			Position: Int(valueToGo),
 		}
 
 		j, _ := json.Marshal(newState)
@@ -212,6 +215,11 @@ func updateCover(window *domain.StateWindow, value int) {
 		}
 		j, _ := json.Marshal(newState)
 		newStateString = string(j)
+	}
+
+	if value == valueToGo {
+		common.LogDebug(fmt.Sprintf("Skipping main cover update %s, new value %d equals current position %d", window.OutputCover.GetUniqueId(), value, currentPosition))
+		return
 	}
 
 	common.LogDebug(fmt.Sprintf("Updating main cover %s=%d (%s, current=%d)", window.OutputCover.GetUniqueId(), value, newStateString, currentPosition))
