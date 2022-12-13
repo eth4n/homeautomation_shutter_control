@@ -217,7 +217,7 @@ func updateCover(window *domain.StateWindow, value int) {
 		newStateString = string(j)
 	}
 
-	if value == valueToGo {
+	if currentPosition == valueToGo {
 		common.LogDebug(fmt.Sprintf("Skipping main cover update %s, new value %d equals current position %d", window.OutputCover.GetUniqueId(), value, currentPosition))
 		return
 	}
