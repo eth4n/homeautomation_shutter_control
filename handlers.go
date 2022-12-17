@@ -76,7 +76,13 @@ func windowTiltedStateChanged(sensor *domain.BinarySensor, newState *bool, oldSt
 }
 
 func manualCoverStateChanged(cover *domain.Cover, newPosition int) {
+	currentPosition := getCoverPosition(cover.Window.OutputCover)
 	common.LogDebug(fmt.Sprintf("Manual cover %s set to position %d", *cover.UniqueId, newPosition))
+
+	if newPosition == 100 && currentPosition < 99 {
+		common.LogDebug(fmt.Sprintf("Fix manual cover %s to 99 instead of 100 (current position is %d)", *cover.UniqueId, currentPosition))
+		newPosition = 99
+	}
 
 	position := strconv.Itoa(newPosition)
 	cover.Window.ManualValue.UpdateState(&position)
@@ -102,7 +108,6 @@ func rainInputStateChanged(rainValue *domain.Select, newState *string) {
 
 func recalculateWindow(window *domain.StateWindow) {
 	var automationValue int
-	var fixCalibrationEnabled = true
 	scheduledPosition, e := strconv.Atoi(*window.ScheduledValue.State)
 	if e != nil {
 		scheduledPosition = 0
@@ -122,16 +127,13 @@ func recalculateWindow(window *domain.StateWindow) {
 
 	automationValue = scheduledPosition
 	if windowOpenPosition >= 0 {
-		fixCalibrationEnabled = false
 		automationValue = windowOpenPosition
 	}
 	if rainPosition != -1 {
-		fixCalibrationEnabled = false
 		automationValue = rainPosition
 	}
 
 	if manualPosition != -1 {
-		fixCalibrationEnabled = false
 		automationValue = manualPosition
 	}
 
@@ -140,10 +142,10 @@ func recalculateWindow(window *domain.StateWindow) {
 
 	if *window.Automation.State == "ON" {
 		// Tell cover the automationValue
-		updateCover(window, automationValue, fixCalibrationEnabled)
+		updateCover(window, automationValue)
 	} else {
 		// Tell cover the manualPosition
-		updateCover(window, manualPosition, false)
+		updateCover(window, manualPosition)
 	}
 
 }
@@ -170,7 +172,7 @@ type CoverStateOnly struct {
 	State *string `json:"state"`
 }
 
-func updateCover(window *domain.StateWindow, value int, fixCalibrationEnabled bool) {
+func updateCover(window *domain.StateWindow, value int) {
 	currentPosition := getCoverPosition(window.OutputCover)
 	var newState CoverStatePosition
 	var newStateString string
@@ -182,7 +184,7 @@ func updateCover(window *domain.StateWindow, value int, fixCalibrationEnabled bo
 		}
 		j, _ := json.Marshal(s)
 		newStateString = string(j)
-	} else if fixCalibrationEnabled && value == 100 && currentPosition != 100 {
+	} else if value == 100 && currentPosition != 100 {
 		common.LogDebug(fmt.Sprintf("Fixing calibration time to set value to 100 for window %s/%s (output cover: %s)", window.Id, window.Config.Id, window.Config.OutputCoverStateTopic))
 
 		// Only to reset CalibrationTime and thus setting the position to 0
