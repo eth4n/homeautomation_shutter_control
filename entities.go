@@ -92,14 +92,11 @@ func initWindows() {
 			JsonAttributesTopic: &w.OutputCoverStateTopic,
 		}
 		var scheduledCover = domain.Cover{
-			Device:              &window,
-			Name:                String(w.Id + "_scheduled_cover"),
-			CommandFunc:         windowScheduledInput,
-			AppState:            &state,
-			StateUpdatedFunc:    &scheduledCoverHandler,
-			StateTopic:          &w.OutputCoverStateTopic,
-			PositionTopic:       &w.OutputCoverStateTopic,
-			JsonAttributesTopic: &w.OutputCoverStateTopic,
+			Device:           &window,
+			Name:             String(w.Id + "_scheduled_cover"),
+			CommandFunc:      windowScheduledInput,
+			AppState:         &state,
+			StateUpdatedFunc: &scheduledCoverHandler,
 		}
 
 		var windowOpenSensor *domain.BinarySensor
