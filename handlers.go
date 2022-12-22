@@ -184,6 +184,9 @@ func updateCover(window *domain.StateWindow, value int) {
 		}
 		j, _ := json.Marshal(s)
 		newStateString = string(j)
+	} else if value == -1 {
+		
+		return
 	} else if value == 100 && currentPosition != 100 {
 		common.LogDebug(fmt.Sprintf("Fixing calibration time to set value to 100 for window %s/%s (output cover: %s)", window.Id, window.Config.Id, window.Config.OutputCoverStateTopic))
 
