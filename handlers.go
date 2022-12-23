@@ -92,7 +92,10 @@ func manualCoverStateChanged(cover *domain.Cover, newPosition int) {
 func scheduledCoverStateChanged(cover *domain.Cover, newState *domain.CoverState, oldState *domain.CoverState) {
 	window := cover.Window
 	position := strconv.Itoa(*newState.Position)
-	window.ManualValue.UpdateState(String(""))
+	if *window.Automation.State == "ON" {
+		common.LogDebug(fmt.Sprintf("Scheduled input %s changed, resetting manual value", *cover.UniqueId))
+		window.ManualValue.UpdateState(String(""))
+	}
 	window.ScheduledValue.UpdateState(&position)
 	calculateWindowValue(window)
 	recalculateWindow(window)
@@ -185,7 +188,7 @@ func updateCover(window *domain.StateWindow, value int) {
 		j, _ := json.Marshal(s)
 		newStateString = string(j)
 	} else if value == -1 {
-		
+
 		return
 	} else if value == 100 && currentPosition != 100 {
 		common.LogDebug(fmt.Sprintf("Fixing calibration time to set value to 100 for window %s/%s (output cover: %s)", window.Id, window.Config.Id, window.Config.OutputCoverStateTopic))
