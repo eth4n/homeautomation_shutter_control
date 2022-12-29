@@ -70,6 +70,7 @@ type CoverState struct {
 	CalibrationTime *int    `json:"calibration_time"`
 	Position        *int    `json:"position"`
 	State           *string `json:"state"`
+	Moving          *string `json:"moving"`
 }
 
 func (d *Cover) GetRawId() string {

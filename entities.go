@@ -120,11 +120,12 @@ func initWindows() {
 		}
 
 		var outputCover = domain.Cover{
-			Device:       &window,
-			Name:         String(w.Id + "_output_cover"),
-			AppState:     &state,
-			StateTopic:   &w.OutputCoverStateTopic,
-			CommandTopic: String(w.OutputCoverStateTopic + "/set"),
+			Device:           &window,
+			Name:             String(w.Id + "_output_cover"),
+			AppState:         &state,
+			StateTopic:       &w.OutputCoverStateTopic,
+			CommandTopic:     String(w.OutputCoverStateTopic + "/set"),
+			StateUpdatedFunc: &outputCoverHandler,
 		}
 
 		sw := domain.StateWindow{
@@ -282,6 +283,15 @@ var scheduledCoverHandler = func(cover *domain.Cover, oldState *string, newState
 	json.Unmarshal([]byte(*oldState), &os)
 
 	scheduledCoverStateChanged(cover, &ns, &os)
+}
+
+var outputCoverHandler = func(cover *domain.Cover, oldState *string, newState *string) {
+	var ns domain.CoverState
+	var os domain.CoverState
+	json.Unmarshal([]byte(*newState), &ns)
+	json.Unmarshal([]byte(*oldState), &os)
+
+	outputCoverStateChanged(cover, &ns, &os)
 }
 
 var rainInputHandler mqtt.MessageHandler = func(client mqtt.Client, msg mqtt.Message) {

@@ -76,13 +76,7 @@ func windowTiltedStateChanged(sensor *domain.BinarySensor, newState *bool, oldSt
 }
 
 func manualCoverStateChanged(cover *domain.Cover, newPosition int) {
-	currentPosition := getCoverPosition(cover.Window.OutputCover)
 	common.LogDebug(fmt.Sprintf("Manual cover %s set to position %d", *cover.UniqueId, newPosition))
-
-	if newPosition == 100 && currentPosition < 99 {
-		common.LogDebug(fmt.Sprintf("Fix manual cover %s to 99 instead of 100 (current position is %d)", *cover.UniqueId, currentPosition))
-		newPosition = 99
-	}
 
 	position := strconv.Itoa(newPosition)
 	cover.Window.ManualValue.UpdateState(&position)
@@ -101,6 +95,15 @@ func scheduledCoverStateChanged(cover *domain.Cover, newState *domain.CoverState
 	recalculateWindow(window)
 }
 
+func outputCoverStateChanged(cover *domain.Cover, newState *domain.CoverState, oldState *domain.CoverState) {
+	window := cover.Window
+
+	if *newState.Moving == "STOP" && *oldState.Moving == "UP" && *newState.Position == 99 {
+		common.LogDebug(fmt.Sprintf("Recalculating window value for %s as it was moving UP and now stopped at 99, new state is STOP", window.Id))
+		recalculateWindow(window)
+	}
+}
+
 func rainInputStateChanged(rainValue *domain.Select, newState *string) {
 
 	for _, w := range rainValue.AppState.Windows {
@@ -110,6 +113,7 @@ func rainInputStateChanged(rainValue *domain.Select, newState *string) {
 }
 
 func recalculateWindow(window *domain.StateWindow) {
+	currentPosition := getCoverPosition(window.OutputCover)
 	var automationValue int
 	scheduledPosition, e := strconv.Atoi(*window.ScheduledValue.State)
 	if e != nil {
@@ -138,6 +142,14 @@ func recalculateWindow(window *domain.StateWindow) {
 
 	if manualPosition != -1 {
 		automationValue = manualPosition
+	}
+
+	if *window.Automation.State == "ON" && automationValue == 100 && currentPosition < 99 {
+		common.LogDebug(fmt.Sprintf("Fix automation value for %s to 99 instead of 100 (current position is %d)", window.Id, currentPosition))
+		automationValue = 99
+	} else if *window.Automation.State != "ON" && manualPosition == 100 && manualPosition < 99 {
+		common.LogDebug(fmt.Sprintf("Fix manual value for %s to 99 instead of 100 (current position is %d)", window.Id, currentPosition))
+		manualPosition = 99
 	}
 
 	automationValueS := strconv.Itoa(automationValue)
