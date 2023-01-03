@@ -97,7 +97,7 @@ func scheduledCoverStateChanged(cover *domain.Cover, newState *domain.CoverState
 
 func outputCoverStateChanged(cover *domain.Cover, newState *domain.CoverState, oldState *domain.CoverState) {
 	window := cover.Window
-	
+
 	if *newState.Moving == "STOP" && *oldState.Moving == "UP" && *newState.Position == 99 {
 		common.LogDebug(fmt.Sprintf("Recalculating window value for %s as it was moving UP and now stopped at 99, new state is STOP", window.Id))
 		recalculateWindow(window)
@@ -143,13 +143,14 @@ func recalculateWindow(window *domain.StateWindow) {
 	if manualPosition != -1 {
 		automationValue = manualPosition
 	}
-
-	if *window.Automation.State == "ON" && automationValue == 100 && currentPosition < 99 {
-		common.LogDebug(fmt.Sprintf("Fix automation value for %s to 99 instead of 100 (current position is %d)", window.Id, currentPosition))
-		automationValue = 99
-	} else if *window.Automation.State != "ON" && manualPosition == 100 && manualPosition < 99 {
-		common.LogDebug(fmt.Sprintf("Fix manual value for %s to 99 instead of 100 (current position is %d)", window.Id, currentPosition))
-		manualPosition = 99
+	if windowOpenPosition >= 0 || rainPosition != -1 || manualPosition != -1 {
+		if *window.Automation.State == "ON" && automationValue == 100 && currentPosition < 99 {
+			common.LogDebug(fmt.Sprintf("Fix automation value for %s to 99 instead of 100 (current position is %d)", window.Id, currentPosition))
+			automationValue = 99
+		} else if *window.Automation.State != "ON" && manualPosition == 100 && manualPosition < 99 {
+			common.LogDebug(fmt.Sprintf("Fix manual value for %s to 99 instead of 100 (current position is %d)", window.Id, currentPosition))
+			manualPosition = 99
+		}
 	}
 
 	automationValueS := strconv.Itoa(automationValue)
