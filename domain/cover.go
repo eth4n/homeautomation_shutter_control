@@ -114,6 +114,9 @@ func (d *Cover) setState(state *string) {
 		if no.State != nil {
 			so.State = no.State
 		}
+		if no.Moving != nil {
+			so.Moving = no.Moving
+		}
 	} else {
 		so.State = state
 	}
