@@ -98,6 +98,10 @@ func scheduledCoverStateChanged(cover *domain.Cover, newState *domain.CoverState
 func outputCoverStateChanged(cover *domain.Cover, newState *domain.CoverState, oldState *domain.CoverState) {
 	window := cover.Window
 
+	if newState.Moving == nil || oldState.Moving == nil || newState.Position == nil {
+		return
+	}
+
 	if *newState.Moving == "STOP" && *oldState.Moving == "UP" && *newState.Position == 99 {
 		common.LogDebug(fmt.Sprintf("Recalculating window value for %s as it was moving UP and now stopped at 99, new state is STOP", window.Id))
 		recalculateWindow(window)
