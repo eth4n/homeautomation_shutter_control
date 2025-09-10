@@ -2,11 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"shutter_control/common"
 	"shutter_control/domain"
 	"strconv"
 	"strings"
+
+	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
 func initEntities() {
@@ -77,10 +78,11 @@ func initWindows() {
 		}
 
 		var automation = domain.Switch{
-			Device:      &window,
-			Name:        String(w.Id + "_window_automation"),
-			CommandFunc: windowAutomationSwitch,
-			AppState:    &state,
+			Device:           &window,
+			Name:             String(w.Id + "_window_automation"),
+			CommandFunc:      windowAutomationSwitch,
+			AppState:         &state,
+			StateUpdatedFunc: &windowAutomationSwitchHandle,
 		}
 		var manualCover = domain.Cover{
 			Device:              &window,
@@ -128,6 +130,12 @@ func initWindows() {
 			StateUpdatedFunc: &outputCoverHandler,
 		}
 
+		var calibratingSensor = domain.Sensor{
+			Device:   &window,
+			Name:     String(w.Id + "_calibrating"),
+			AppState: &state,
+		}
+
 		sw := domain.StateWindow{
 			Id:                      w.Id,
 			Config:                  &state.Configuration.Windows[i],
@@ -143,6 +151,7 @@ func initWindows() {
 			OutputValue:             &outputValue,
 			OutputCover:             &outputCover,
 			RainValue:               &rainValue,
+			Calibrating:             &calibratingSensor,
 		}
 		automation.Window = &sw
 		scheduledCover.Window = &sw
@@ -154,6 +163,7 @@ func initWindows() {
 		outputValue.Window = &sw
 		outputCover.Window = &sw
 		rainValue.Window = &sw
+		calibratingSensor.Window = &sw
 		if windowOpenSensor != nil {
 			windowOpenSensor.Window = &sw
 			windowOpenSensor.Initialize()
@@ -194,6 +204,13 @@ func initWindows() {
 
 		rainValue.Initialize()
 		rainValue.Subscribe()
+
+		calibratingSensor.Initialize()
+		calibratingSensor.Subscribe()
+
+		// Always unset calibrating on startup
+		calibratingValueS := strconv.Itoa(0)
+		calibratingSensor.UpdateState(&calibratingValueS)
 
 		state.Windows = append(state.Windows, sw)
 	}
@@ -276,6 +293,12 @@ var windowScheduledInput mqtt.MessageHandler = func(client mqtt.Client, msg mqtt
 		window.ScheduledInputCover.UpdateState(&value)
 	}
 }
+
+var windowAutomationSwitchHandle = func(switchObj *domain.Switch, oldState *string, newState *string) {
+
+	automationSwitchStateChanged(switchObj, newState)
+}
+
 var scheduledCoverHandler = func(cover *domain.Cover, oldState *string, newState *string) {
 	var ns domain.CoverState
 	var os domain.CoverState

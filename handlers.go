@@ -94,7 +94,6 @@ func scheduledCoverStateChanged(cover *domain.Cover, newState *domain.CoverState
 	calculateWindowValue(window)
 	recalculateWindow(window)
 }
-
 func outputCoverStateChanged(cover *domain.Cover, newState *domain.CoverState, oldState *domain.CoverState) {
 	window := cover.Window
 
@@ -104,6 +103,22 @@ func outputCoverStateChanged(cover *domain.Cover, newState *domain.CoverState, o
 
 	if *newState.Moving == "STOP" && *oldState.Moving == "UP" && *newState.Position == 99 {
 		common.LogDebug(fmt.Sprintf("Recalculating window value for %s as it was moving UP and now stopped at 99, new state is STOP", window.Id))
+		recalculateWindow(window)
+	} else if *newState.Moving == "STOP" && *newState.Position == 100 {
+		common.LogDebug(fmt.Sprintf("Window value for %s as it was moving UP and now stopped at 100, new state is STOP: calibrating done", window.Id))
+		calibratingValueS := strconv.Itoa(0)
+		window.Calibrating.UpdateState(&calibratingValueS)
+		calculateWindowValue(window)
+		recalculateWindow(window)
+	}
+}
+
+func automationSwitchStateChanged(switchObj *domain.Switch, newState *string) {
+	window := switchObj.Window
+
+	if *newState == "ON" {
+		common.LogDebug(fmt.Sprintf("Automation for window %s enabled, resetting manual value and recalculating window", window.Id))
+		window.ManualValue.UpdateState(String(""))
 		recalculateWindow(window)
 	}
 }
@@ -208,6 +223,8 @@ func updateCover(window *domain.StateWindow, value int) {
 
 		return
 	} else if value == 100 && currentPosition != 100 {
+		calibratingValueS := strconv.Itoa(1)
+		window.Calibrating.UpdateState(&calibratingValueS)
 		common.LogDebug(fmt.Sprintf("Fixing calibration time to set value to 100 for window %s/%s (output cover: %s)", window.Id, window.Config.Id, window.Config.OutputCoverStateTopic))
 
 		// Only to reset CalibrationTime and thus setting the position to 0
@@ -248,6 +265,11 @@ func updateCover(window *domain.StateWindow, value int) {
 
 	if currentPosition == valueToGo {
 		common.LogDebug(fmt.Sprintf("Skipping main cover update %s, new value %d equals current position %d", window.OutputCover.GetUniqueId(), value, currentPosition))
+		return
+	}
+	currentCalibrating, e := strconv.Atoi(*window.Calibrating.State)
+	if e != nil || currentCalibrating == 1 && valueToGo != 100 {
+		common.LogDebug(fmt.Sprintf("Skipping main cover update %s, cover currently in calibration", window.OutputCover.GetUniqueId()))
 		return
 	}
 

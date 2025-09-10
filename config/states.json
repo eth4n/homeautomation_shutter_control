@@ -1,2 +1,14 @@
 {
+ "dev_w_01_automation_output": "70",
+ "dev_w_01_calibrating": "0",
+ "dev_w_01_manual_value": "70",
+ "dev_w_01_output_cover": "{\"calibration_time\":26,\"linkquality\":10,\"motor_reversal\":null,\"moving\":\"STOP\",\"position\":73,\"state\":\"OPEN\",\"update\":{\"installed_version\":-1,\"latest_version\":-1,\"state\":null},\"update_available\":null}",
+ "dev_w_01_rain_value": "",
+ "dev_w_01_scheduled_cover": "{\"calibration_time\":null,\"position\":100,\"state\":\"OPEN\",\"moving\":null}",
+ "dev_w_01_scheduled_value": "100",
+ "dev_w_01_window_automation": "ON",
+ "dev_w_01_window_open": "{\"battery\":100,\"contact\":true,\"device_temperature\":28,\"linkquality\":76,\"power_outage_count\":6,\"voltage\":3015}",
+ "dev_w_01_window_open_state": "0",
+ "dev_w_01_window_open_value": "",
+ "time": "10.09.2025 11:07:58"
 }

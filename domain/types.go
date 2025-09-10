@@ -51,6 +51,7 @@ type StateWindow struct {
 	RainValue               *Sensor
 	OutputValue             *Sensor
 	OutputCover             *Cover
+	Calibrating             *Sensor
 }
 
 type AqaraDoorSensorState struct {
